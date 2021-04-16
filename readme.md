@@ -122,6 +122,18 @@ Wrapping your model adds extra ```afterUpdate```, ```afterDestroy``` and ```afte
 
 Also, under the hood, ```cache.findAll``` and ```cache.FindOne``` run the respective sequelize functions and pass all your intended parameters. No monkey patching or other shenanigans :)
 
+**When using **paranoid** tables, ```AfterDestroy``` hooks are not triggered as expected. This issue has been extensively discussed [Here](https://github.com/sequelize/sequelize/issues/9318). You will need to add ```individualHooks:true``` to force the hook to fire. This is important because the hook is used to invalidate old caches. See example below.**
+
+```javascript
+
+     mariadb.Site.destroy({
+        where: {
+            id: 1234
+        },
+        individualHooks: true
+    })
+
+```
 
 ## Contributing
 I need your support. Hit me up and let's make this a better module!

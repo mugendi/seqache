@@ -206,10 +206,16 @@ class Cache {
         });
 
 
-        // add hooks tp purge caches
-        model.afterUpdate(model.cache.purge);
-        model.afterCreate(model.cache.purge);
-        model.afterDestroy(model.cache.purge);
+        let events = ["Update", "Create", "Destroy"];
+
+        // add hooks to purge caches
+        for (let event of events) {
+            // bind afterUpdate, afterCreate, afterDestroy
+            model['after' + event](model.cache.purge);
+            // bind the bulk versions of the same events too
+            model['afterBulk' + event](model.cache.purge);
+        }
+
 
 
     }

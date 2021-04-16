@@ -1,6 +1,6 @@
 {
     "name": "seqache",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "description": "Simple and effective redis cache for sequelize :)",
     "keywords": ["cache", "ttl", "redis", "sequelize", "sql", "database"],
     "main": "index.js",
