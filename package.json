@@ -1,0 +1,12 @@
+{
+    "name": "seqache",
+    "version": "0.0.1",
+    "description": "Simple and effective redis cache for sequelize :)",
+    "keywords": ["cache", "ttl", "redis", "sequelize", "sql", "database"],
+    "main": "index.js",
+    "author": "Anthony Mugendi <ngurumugz@gmail.com>",
+    "license": "MIT",
+    "dependencies": {
+        "ioredis": "^4.26.0"
+    }
+}
