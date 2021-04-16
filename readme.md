@@ -125,13 +125,12 @@ Also, under the hood, ```cache.findAll``` and ```cache.FindOne``` run the respec
 **When using **paranoid** tables, ```AfterDestroy``` hooks are not triggered as expected. This issue has been extensively discussed [Here](https://github.com/sequelize/sequelize/issues/9318). You will need to add ```individualHooks:true``` to force the hook to fire. This is important because the hook is used to invalidate old caches. See example below.**
 
 ```javascript
-     mariadb.Site.destroy({
+     User.destroy({
         where: {
             id: 1234
         },
         individualHooks: true
     })
-
 ```
 
 This is **very good practice** as even in associations, it escalates individual hooks across all affected models which in turn invalidates all related caches!
