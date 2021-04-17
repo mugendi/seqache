@@ -21,6 +21,8 @@ class Cache {
     }
 
     __get_cache_key(model) {
+
+
         //set database & tablename
         this.database = model.sequelize.config.database;
         this.tableName = model.tableName;
@@ -28,12 +30,17 @@ class Cache {
         // make values to be used in redis
 
         // the key is made of "prefix:database:table"
-        this.hashKey = `${this.options.keyPrefix}:${this.database}:${this.tableName}`;
+        let hashField, hashKey = `${this.options.keyPrefix}:${this.database}:${this.tableName}`;
+
+        // console.log(model.sequelize.config.database, model.tableName);
+        // console.log(this.hashKey);
 
         // the hash field is an md5 hash of the query options as entered
-        if (this.queryArgs)
-            this.hashField = crypto.createHash('md5').update(JSON.stringify(this.queryArgs)).digest('hex');
+        if (this.queryArgs) {
+            hashField = crypto.createHash('md5').update(JSON.stringify(this.queryArgs)).digest('hex');
+        }
 
+        return { hashField, hashKey }
     }
 
     ___log() {
@@ -48,12 +55,12 @@ class Cache {
 
     }
 
-    ___detete_hash() {
+    ___detete_hash(hashKey) {
 
         let self = this;
 
         return new Promise((resolve, reject) => {
-            this.options.redis.del(this.hashKey, function(err, resp) {
+            this.options.redis.del(hashKey, function(err, resp) {
                 if (err) return reject(err);
 
                 // if we have purged anything
@@ -71,13 +78,11 @@ class Cache {
         //no query arguments here...
         this.queryArgs = null;
         // construct cache keys
-        this.__get_cache_key(model);
+
+        let { hashKey } = this.__get_cache_key(model);
 
         // delete this hash
-        this.___detete_hash()
-
-
-
+        this.___detete_hash(hashKey);
     }
 
 
@@ -95,7 +100,6 @@ class Cache {
             whereStr;
 
 
-
         // everything else should be considered as user entered arguments for the query
         this.queryArgs = args;
         whereStr = this.queryArgs[0].where ? " [ WHERE: " + JSON.stringify(this.queryArgs[0].where) + " ]" : "";
@@ -110,18 +114,17 @@ class Cache {
         this.isRawQuery = this.queryArgs[0].raw;
 
 
+        // construct cache keys
+        let { hashField, hashKey } = this.__get_cache_key(model);
+
         if (this.isRawQuery) {
-
-            // construct cache keys
-            this.__get_cache_key(model);
-
-            // console.log(this);
 
             // now check if keys exist in cache
             // we wrap redis call in a promise as we have no guarantee the user is using ioredis that supports promises
             let cachedResult = await new Promise((resolve, reject) => {
 
-                    this.options.redis.hget(this.hashKey, this.hashField, function(err, resp) {
+
+                    self.options.redis.hget(hashKey, hashField, function(err, resp) {
                         if (err) return reject(err);
                         // parse result back to JSON
                         resolve(JSON.parse(resp));
@@ -170,9 +173,9 @@ class Cache {
 
                         // okay, let us save this result now
                         // we save as a JSON string
-                        await self.options.redis.hset(self.hashKey, this.hashField, JSON.stringify(queryResponse));
+                        await self.options.redis.hset(hashKey, hashField, JSON.stringify(queryResponse));
                         // set expiry according to ttl
-                        await self.options.redis.expire(self.hashKey, ttl);
+                        await self.options.redis.expire(hashKey, ttl);
 
                     });
 
