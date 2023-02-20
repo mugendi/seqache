@@ -6,7 +6,7 @@ class Cache {
 
         this.options = Object.assign({
             keyPrefix: "seqache",
-            log: false,
+            log: console.log,
             // default cache duration is one day
             ttl: 3600 * 24,
             maxSize: 1000
@@ -46,9 +46,12 @@ class Cache {
     ___log() {
 
         // if allowed to log and is isRawQuery
-        if (this.options.log && this.isRawQuery) {
-            let args = [`Seqcache >> `].concat(Array.from(arguments));
-            console.log(...args);
+        if (typeof this.options.log && this.isRawQuery) {
+            let args = [`Seqcache > `].concat(Array.from(arguments));
+
+            let logFunc = typeof this.options.log == 'function' ? this.options.log : console.log;
+
+            logFunc(...args);
         }
 
 
